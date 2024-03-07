@@ -1,2 +1,8 @@
 menv
 crawler-training.pdf
+.idea/inspectionProfiles/
+.idea/misc.xml
+.idea/modules.xml
+.idea/pn-train.iml
+.idea/vcs.xml
+__pycache__/
