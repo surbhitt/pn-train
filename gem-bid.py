@@ -10,6 +10,8 @@ condition) b_bid_number - Items: if (bidData.b_category_name[0].length > 30) { h
 - Document checksum from bid document (instead just store document link)
 """
 
+from write_to_db import save_to_postgresql
+import math
 import json
 import scrapy
 
@@ -39,16 +41,16 @@ class BidSpider(scrapy.Spider):
 
     def parse(self, response):
         data = {"payload": payload,
-                "csrf_bd_gem_nk": response.headers.getlist('Set-Cookie')[0].decode("utf-8").split('; ')[0].split("=")[
-                    1]}
-
+                "csrf_bd_gem_nk":
+                    response.headers.getlist('Set-Cookie')[0].decode("utf-8").split('; ')[0].split("=")[
+                        1]}
         return scrapy.FormRequest(
-            url="https://bidplus.gem.gov.in/all-bids-data", formdata=data, callback=self.parse_load_bid
+            url="https://bidplus.gem.gov.in/all-bids-data", formdata=data, callback=self.parse_load_bid,
+            cb_kwargs={"page_num": 2}
         )
 
-    def parse_load_bid(self, response):
+    def parse_load_bid(self, response, page_num):
         res = json.loads(response.body)
-        print(len(res["response"]["response"]))
         for doc in res['response']['response']['docs']:
             item = ""
             if len(doc['b_category_name'][0]) > 30:
@@ -67,8 +69,19 @@ class BidSpider(scrapy.Spider):
                 'Ra No': doc.get('b_bid_number', ''),
                 'Items': item,
                 'Quantity': doc.get('b_total_quantity', ''),
-                'Department': doc.get('ba_official_details_deptName',''),
+                'Department': doc.get('ba_official_details_deptName', ''),
                 'Start date': doc.get('final_start_date_sort', ''),
                 'End date': doc.get('final_end_date_sort', ''),
                 'doclink': ''
             })
+        if page_num <= 3: # math.ceil(res.get('response','').get('response', '').get('numFound', '')/10):
+            data = {"payload": {"page": page_num, **payload},
+                    "csrf_bd_gem_nk":
+                        response.headers.getlist('Set-Cookie')[0].decode("utf-8").split('; ')[0].split("=")[
+                            1]}
+            scrapy.FormRequest(
+                url="https://bidplus.gem.gov.in/all-bids-data", formdata=data, callback=self.parse_load_bid,
+                cb_kwargs={"page_num": page_num + 1}, dont_filter=True
+            )
+        return clean_d
+
