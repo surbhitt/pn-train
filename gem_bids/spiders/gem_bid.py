@@ -10,10 +10,10 @@ condition) b_bid_number - Items: if (bidData.b_category_name[0].length > 30) { h
 - Document checksum from bid document (instead just store document link)
 """
 
-from write_to_db import save_to_postgresql
 import math
 import json
 import scrapy
+from gem_bids.items import GemBidsItem 
 
 payload = {
     "param": {
@@ -65,13 +65,13 @@ class BidSpider(scrapy.Spider):
                 else:
                     item += category_name
             clean_d.append({
-                'Bid No': doc.get('b_bid_number_parent', ''),
-                'Ra No': doc.get('b_bid_number', ''),
+                'Bid_No': doc.get('b_bid_number_parent', ''),
+                'Ra_No': doc.get('b_bid_number', ''),
                 'Items': item,
                 'Quantity': doc.get('b_total_quantity', ''),
                 'Department': doc.get('ba_official_details_deptName', ''),
-                'Start date': doc.get('final_start_date_sort', ''),
-                'End date': doc.get('final_end_date_sort', ''),
+                'Start_date': doc.get('final_start_date_sort', ''),
+                'End_date': doc.get('final_end_date_sort', ''),
                 'doclink': ''
             })
         if page_num <= 3: # math.ceil(res.get('response','').get('response', '').get('numFound', '')/10):

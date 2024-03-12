@@ -1,2 +1,2 @@
 clear
-scrapy runspider gem-bid.py -O data.json
+scrapy crawl bid_spider -O data.json
