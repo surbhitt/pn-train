@@ -3,7 +3,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup as bs4
+from db_stuff import populate_table, create_table
 
+# create_table()
 for p in range(1, 2700):
     url = f"https://eprocure.gov.in/cppp/latestactivetendersnew/cpppdata/?page={p}"
     driver = webdriver.Firefox()
@@ -22,14 +24,15 @@ for p in range(1, 2700):
     for row in t.find_all("tr")[1:]:
         # cols = row.find_elements(By.TAG_NAME, "td") doesnt work
         cols = row.find_all("td")
+        item={}
         if len(cols):
-            sno = cols[0].text
-            pub_date = cols[1].text
-            bid_sub_close = cols[2].text
-            tend_open = cols[3].text
-            title = cols[4].text
-            org = cols[5].text
-            link = cols[4].find("a").get("href")
+            item["sno"]= cols[0].text,
+            item["pub_date"]= cols[1].text,
+            item["bid_sub_close"]= cols[2].text,
+            item["tend_open"]= cols[3].text,
+            item["title"]= cols[4].text,
+            item["org"]= cols[5].text,
+            item["link"]= cols[4].find("a").get("href"),
             driver.find_element(
                     By.XPATH, '//*[@id="table"]/tbody['+str(cnt)+']/tr/td[5]/a').click()
             # if linktxt: 
@@ -59,16 +62,17 @@ for p in range(1, 2700):
                 print("table didnt load for the tender")
                 exit(1)
             t = driver.find_element(By.XPATH, '//div[@id="tfullview"]/div/table[4]/tbody')
-            refno = t.find_element(By.XPATH, '//tr[2]/td[3]').text
-            tend_type = t.find_element(By.XPATH, '//tr[2]/td[6]').text
-            tend_cat = t.find_element(By.XPATH, '//tr[2]/td[6]').text
-            fee = t.find_element(By.XPATH, '//tr[4]/td[6]').text
-            loc = t.find_element(By.XPATH, '//tr[5]/td[6]').text
-            emd = t.find_element(By.XPATH, '//tr[5]/td[3]').text
+            item["refno"] = t.find_element(By.XPATH, '//tr[2]/td[3]').text
+            item["tend_type"] = t.find_element(By.XPATH, '//tr[2]/td[6]').text
+            item["tend_cat"] = t.find_element(By.XPATH, '//tr[2]/td[6]').text
+            item["fee"] = t.find_element(By.XPATH, '//tr[4]/td[6]').text
+            item["loc"] = t.find_element(By.XPATH, '//tr[5]/td[6]').text
+            item["emd"] = t.find_element(By.XPATH, '//tr[5]/td[3]').text
 
             t = driver.find_element(By.XPATH, '//div[@id="tfullview"]/div/table[8]/tbody')
-            desc = t.find_element(By.XPATH, '//tr[1]/td[3]/div').text
-            doc = t.find_element(By.XPATH, '//tr[2]/td[3]/div/a').text
+            item["des"] = t.find_element(By.XPATH, '//tr[1]/td[3]/div').text
+            item["doc"] = t.find_element(By.XPATH, '//tr[2]/td[3]/div/a').text
+            populate_table(item)
         cnt+=1
         driver.get(url)
         try:
@@ -76,6 +80,5 @@ for p in range(1, 2700):
         except:
             print("Couldnt load the data table")
             exit(1)
-        print(refno, tend_type, tend_cat, fee, loc, emd, desc, doc, sno, pub_date, bid_sub_close, tend_open, title, org, link)
     driver.close() 
 
