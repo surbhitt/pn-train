@@ -1,0 +1,3 @@
+Configs
+
+http://crawler.hawker.news:8000/admin/dashboard/crawlerconfig/14178/change/?_changelist_filters=q%3Dcgwb%26mega_config_id__isnull%3DTrue
