@@ -1,0 +1,4 @@
+packaging==23.2
+pdf2image==1.17.0
+pillow==10.2.0
+pytesseract==0.3.10
