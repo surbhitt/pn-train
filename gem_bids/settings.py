@@ -63,7 +63,8 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-    "gem_bids.pipelines.GemBidsPipeline": 300,
+    "gem_bids.pipelines.GemPipeline": 100,
+    "gem_bids.pipelines.PgPyPipeline": 200,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
