@@ -2,45 +2,39 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-import itemadapter
+from datetime import datetime
 import psycopg2
-import datetime
-import pytz
-from pg_python.pg_python import *
+from pg_python.pg_python import pg_server, write
 
-# useful for handling different item types with a single interface
-from itemadapter import ItemAdapter
 
 class GemPipeline:
-    def __init__(self) -> None:
-        print("[INFO] gem pipeline entered")
-
     def process_item(self, item, spider):
         for k in item:
             if not item[k]:
                 item[k] = "NA"
-        item["Bid_No"] = item["Bid_No"][0] if len(item["Bid_No"]) else "NA",
-        item["Ra_No"] = item["Ra_No"][0],
-        item["Quantity"] = item["Quantity"][0],
-        item["Department"] = item["Department"][0],
-        print("________")
-        print(item)
-        print("________")
-        # if 'start_date' in item: 
+            elif isinstance(item[k], list):
+                item[k] = item[k][0]
+                if k.endswith("date"):
+                    item[k] = datetime.strptime(item[k].split('T')[0], '%Y-%m-%d').date()
+                elif k == "doclink":
+                    item[k] = '/showbidDocument/' + str(item[k])
+
+        # if 'start_date' in item:
         #     item['start_date'] = (item.get('start_date')))
         return item
 
 
 class PgPyPipeline:
     def __init__(self):
-       self.connect()
+        self.connect()
 
     def connect(self):
-        pgs = pg_server('test','postgres','admin','127.0.0.1', server='default', application_name='pg_python')
-     
+        pgs = pg_server('test', 'postgres', 'admin', '127.0.0.1', server='default', application_name='pg_python')
+
     def process_item(self, item, spider):
         item['key'] = item['Ra_No'][0]
         write('pg_py', item)
+
 
 class PostgresPipeline:
     def __init__(self):
@@ -65,20 +59,21 @@ class PostgresPipeline:
 
     def process_item(self, item, spider):
         self.cur.execute(""" 
-        INSERT INTO bids (Bid_No, Ra_No, Items, Quantity, Department, Start_date, End_date, doclink) values (%s, %s, %s, %s, %s, %s, %s, %s)""", (
-            item["Bid_No"][0] if len(item["Bid_No"]) else "NA",
-            item["Ra_No"][0],
-            item["Items"],
-            item["Quantity"][0],
-            item["Department"][0],
-            item["Start_date"],
-            item["End_date"],
-            item["doclink"]
-        ))
+        INSERT INTO bids (Bid_No, Ra_No, Items, Quantity, Department, Start_date, End_date, doclink) values (%s, %s, %s, 
+        %s, %s, %s, %s, %s)""",
+                         (
+                             item["Bid_No"][0] if len(item["Bid_No"]) else "NA",
+                             item["Ra_No"][0],
+                             item["Items"],
+                             item["Quantity"][0],
+                             item["Department"][0],
+                             item["Start_date"],
+                             item["End_date"],
+                             item["doclink"]
+                         ))
         self.con.commit()
         return item
 
     def close_spider(self):
         self.cur.close()
         self.con.close()
-

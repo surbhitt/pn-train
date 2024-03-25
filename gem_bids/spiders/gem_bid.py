@@ -8,12 +8,11 @@ condition) b_bid_number - Items: if (bidData.b_category_name[0].length > 30) { h
 - Start date (parsed datetime object): final_start_date_sort
 - End date(parsed datetime object): final_end_date_sort
 - Document checksum from bid document (instead just store document link)
+ href='showbidDocument/' + bidData.b_id_parent
 """
 
-import math
 import json
 import scrapy
-from gem_bids.items import GemBidsItem 
 
 payload = {
     "param": {
@@ -64,7 +63,11 @@ class BidSpider(scrapy.Spider):
                     item += f'{category_name} ({boq_title})'
                 else:
                     item += category_name
+
             clean_d.append({
+                # prob with
+                # 'Bid_No': doc.get('b_bid_number_parent', '')[0],
+                # is that if the key is not found it returns ''[0] which is 'N'
                 'Bid_No': doc.get('b_bid_number_parent', ''),
                 'Ra_No': doc.get('b_bid_number', ''),
                 'Items': item,
@@ -72,9 +75,10 @@ class BidSpider(scrapy.Spider):
                 'Department': doc.get('ba_official_details_deptName', ''),
                 'Start_date': doc.get('final_start_date_sort', ''),
                 'End_date': doc.get('final_end_date_sort', ''),
-                'doclink': ''
+                'doclink': doc.get('b_id_parent', '')
             })
-        if page_num <= 3: # math.ceil(res.get('response','').get('response', '').get('numFound', '')/10):
+
+        if page_num <= 3:  # math.ceil(res.get('response','').get('response', '').get('numFound', '')/10):
             data = {"payload": {"page": page_num, **payload},
                     "csrf_bd_gem_nk":
                         response.headers.getlist('Set-Cookie')[0].decode("utf-8").split('; ')[0].split("=")[
@@ -83,5 +87,5 @@ class BidSpider(scrapy.Spider):
                 url="https://bidplus.gem.gov.in/all-bids-data", formdata=data, callback=self.parse_load_bid,
                 cb_kwargs={"page_num": page_num + 1}, dont_filter=True
             )
-        return clean_d
 
+        return clean_d
