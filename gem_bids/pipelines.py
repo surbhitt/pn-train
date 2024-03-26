@@ -11,7 +11,8 @@ class GemPipeline:
     def process_item(self, item, spider):
         for k in item:
             if not item[k]:
-                item[k] = "NA"
+                # item[k] = 'NA'
+                item[k] = None
             elif isinstance(item[k], list):
                 item[k] = item[k][0]
                 if k.endswith("date"):
@@ -26,13 +27,10 @@ class GemPipeline:
 
 class PgPyPipeline:
     def __init__(self):
-        self.connect()
-
-    def connect(self):
         pgs = pg_server('test', 'postgres', 'admin', '127.0.0.1', server='default', application_name='pg_python')
 
     def process_item(self, item, spider):
-        item['key'] = item['Ra_No'][0]
+        item['key'] = item.get('Ra_No')
         write('pg_py', item)
 
 
